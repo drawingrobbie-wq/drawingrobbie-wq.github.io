@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery — DrawingRobbie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Caveat:wght@500;600&family=Work+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --paper: #eee3d0;
+    --paper-deep: #e4d6bd;
+    --card: #f8f2e6;
+    --ink: #2e2a24;
+    --ink-soft: #5c5548;
+    --rust: #b1614a;
+    --rust-deep: #8f4b39;
+    --moss: #6e7b58;
+    --thread: #c9bda1;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+  }
+
+  .wrap{ max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  header.site{
+    position: sticky; top:0; z-index: 50;
+    background: rgba(238,227,208,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--thread);
+  }
+  .nav-row{ display:flex; align-items:center; justify-content:space-between; padding: 18px 28px; }
+  .wordmark{ font-family:'Fraunces', serif; font-weight:600; font-size:1.2rem; }
+  .wordmark span{ color: var(--rust); }
+  .links a{
+    color: var(--ink); text-decoration:none; margin-left: 26px;
+    font-family:'IBM Plex Mono', monospace; font-size: 0.82rem;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid transparent;
+  }
+  .links a:hover{ border-bottom-color: var(--rust); }
+
+  .section-pad{ padding: 60px 0 90px; }
+
+  .section-head{ margin-bottom: 40px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.78rem;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--rust-deep);
+    margin: 0 0 10px;
+  }
+  h1, h2 { font-family:'Fraunces', serif; font-weight:600; margin:0; }
+  .section-head h2{ font-size: 2rem; }
+  .marginalia{
+    display:block; margin-top: 10px; font-family:'Caveat', cursive;
+    font-size: 1.15rem; color: var(--ink-soft);
+  }
+
+  .back-link{
+    display:inline-block; margin-bottom: 6px;
+    font-family:'IBM Plex Mono', monospace; font-size:0.8rem;
+    color: var(--ink-soft); text-decoration:none;
+  }
+  .back-link:hover{ color: var(--rust-deep); }
+
+  .gallery-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .g-tile{
+    display:block; position:relative; overflow:hidden;
+    background: var(--card); border: 1px solid var(--thread);
+    box-shadow: 0 6px 16px rgba(46,42,36,0.1);
+    aspect-ratio: 1 / 1;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .g-tile:hover{ transform: translateY(-4px); box-shadow: 0 14px 24px rgba(46,42,36,0.18); }
+  .g-tile img{
+    width:100%; height:100%; object-fit: cover; display:block;
+    filter: sepia(0.1) saturate(1.05);
+  }
+
+  @media (max-width: 900px){
+    .gallery-grid{ grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 600px){
+    .gallery-grid{ grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .nav-row{ flex-direction: column; align-items:flex-start; gap: 10px; }
+    .links a{ margin-left: 0; margin-right: 18px; }
+  }
+
+  /* lightbox */
+  #lightbox{
+    position: fixed; inset: 0; background: rgba(26,23,18,0.92);
+    display:none; align-items:center; justify-content:center;
+    flex-direction: column; z-index: 100; padding: 30px;
+  }
+  #lightbox.open{ display:flex; }
+  #lightbox img{
+    max-width: min(90vw, 900px); max-height: 78vh;
+    object-fit: contain; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  #lightbox .lb-title{
+    color: var(--paper); font-family:'Fraunces', serif; margin-top: 16px; font-size: 1.1rem;
+  }
+  #lightbox .lb-close{
+    position: absolute; top: 22px; right: 30px;
+    color: var(--paper); font-size: 2rem; line-height:1;
+    background:none; border:none; cursor:pointer; font-family: sans-serif;
+  }
+  #lightbox .lb-nav{
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--paper);
+    font-size: 2.5rem; cursor: pointer; padding: 10px 18px;
+    font-family: sans-serif; opacity: 0.7;
+  }
+  #lightbox .lb-nav:hover{ opacity: 1; }
+  #lightbox .lb-prev{ left: 6px; }
+  #lightbox .lb-next{ right: 6px; }
+
+  footer{
+    text-align:center; padding: 40px 28px 60px;
+    font-family:'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--ink-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav-row">
+    <div class="wordmark">drawing<span>·</span>robbie</div>
+    <nav class="links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#work">Work</a>
+      <a href="index.html#writing">Writing</a>
+      <a href="index.html#contact">Say hello</a>
+    </nav>
+  </div>
+</header>
+
+<section>
+  <div class="wrap section-pad">
+    <a class="back-link" href="index.html">← Back home</a>
+    <div class="section-head">
+      <p class="eyebrow">The full sketchbook</p>
+      <h2>Gallery.</h2>
+      <span class="marginalia">every piece, click any of them to look closer</span>
+    </div>
+
+    <div class="gallery-grid" id="galleryGrid">
+      <a class="g-tile" href="images/full/baby-luigi.jpg" data-title="Baby Luigi">
+        <img src="images/thumbs/baby-luigi.jpg" alt="Baby Luigi" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/batman-newstyle.jpg" data-title="Batman">
+        <img src="images/thumbs/batman-newstyle.jpg" alt="Batman" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/deku-1.jpg" data-title="Deku">
+        <img src="images/thumbs/deku-1.jpg" alt="Deku" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/deku.jpg" data-title="Deku">
+        <img src="images/thumbs/deku.jpg" alt="Deku" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/ludwig-von-koopa.jpg" data-title="Ludwig Von Koopa">
+        <img src="images/thumbs/ludwig-von-koopa.jpg" alt="Ludwig Von Koopa" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/pichu.jpg" data-title="Pichu">
+        <img src="images/thumbs/pichu.jpg" alt="Pichu" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/psyduck.jpg" data-title="Psyduck">
+        <img src="images/thumbs/psyduck.jpg" alt="Psyduck" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/solar-might.jpg" data-title="Solar Might">
+        <img src="images/thumbs/solar-might.jpg" alt="Solar Might" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/solar-might-2.jpg" data-title="Solar Might">
+        <img src="images/thumbs/solar-might-2.jpg" alt="Solar Might" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/superman-newstyle.jpg" data-title="Superman">
+        <img src="images/thumbs/superman-newstyle.jpg" alt="Superman" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-1.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-1.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-10.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-10.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-11.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-11.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-12.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-12.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-13.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-13.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-14.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-14.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-15.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-15.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-16.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-16.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-17.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-17.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-18.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-18.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-19.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-19.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-2.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-2.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-20.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-20.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-21.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-21.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-22.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-22.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-23.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-23.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-24.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-24.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-25.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-25.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-26.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-26.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-27.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-27.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-28.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-28.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-29.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-29.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-3.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-3.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-30.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-30.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-31.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-31.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-32.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-32.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-33.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-33.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-34.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-34.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-35.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-35.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-36.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-36.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-37.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-37.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-38.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-38.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-39.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-39.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-4.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-4.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-40.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-40.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-41.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-41.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-42.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-42.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-43.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-43.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-44.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-44.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-45.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-45.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-46.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-46.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-47.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-47.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-48.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-48.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-5.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-5.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-6.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-6.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-7.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-7.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-8.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-8.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork-9.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork-9.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/untitled-artwork.jpg" data-title="Untitled">
+        <img src="images/thumbs/untitled-artwork.jpg" alt="Untitled" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/tai-w-hair.jpg" data-title="Tai">
+        <img src="images/thumbs/tai-w-hair.jpg" alt="Tai" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/kenobidog.jpg" data-title="Kenobi's dog">
+        <img src="images/thumbs/kenobidog.jpg" alt="Kenobi's dog" loading="lazy">
+      </a>
+      <a class="g-tile" href="images/full/maul.jpg" data-title="Darth Maul">
+        <img src="images/thumbs/maul.jpg" alt="Darth Maul" loading="lazy">
+      </a>
+    </div>
+  </div>
+</section>
+
+<div id="lightbox">
+  <button class="lb-close" aria-label="Close">&times;</button>
+  <button class="lb-nav lb-prev" aria-label="Previous">&#8249;</button>
+  <button class="lb-nav lb-next" aria-label="Next">&#8250;</button>
+  <img src="" alt="">
+  <div class="lb-title"></div>
+</div>
+
+<footer>built on a weekend, hosted for free — © 2026 drawingrobbie</footer>
+
+<script>
+  const tiles = Array.from(document.querySelectorAll('.g-tile'));
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = lightbox.querySelector('img');
+  const lbTitle = lightbox.querySelector('.lb-title');
+  let current = 0;
+
+  function openAt(i){
+    current = (i + tiles.length) % tiles.length;
+    const t = tiles[current];
+    lbImg.src = t.getAttribute('href');
+    lbImg.alt = t.getAttribute('data-title');
+    lbTitle.textContent = t.getAttribute('data-title');
+    lightbox.classList.add('open');
+  }
+
+  tiles.forEach((t, i) => {
+    t.addEventListener('click', e => {
+      e.preventDefault();
+      openAt(i);
+    });
+  });
+
+  lightbox.querySelector('.lb-close').addEventListener('click', () => lightbox.classList.remove('open'));
+  lightbox.querySelector('.lb-prev').addEventListener('click', () => openAt(current - 1));
+  lightbox.querySelector('.lb-next').addEventListener('click', () => openAt(current + 1));
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') lightbox.classList.remove('open');
+    if (e.key === 'ArrowLeft') openAt(current - 1);
+    if (e.key === 'ArrowRight') openAt(current + 1);
+  });
+</script>
+
+</body>
+</html>
